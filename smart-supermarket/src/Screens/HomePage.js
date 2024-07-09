@@ -9,7 +9,7 @@ function HomePage() {
         <nav>
           <div className="nav-links">
             <button className="nav-link">Home</button>
-            <button className="nav-link">Signin</button>
+            <Link to="/signin" className="nav-link">Signin</Link>
           </div>
         </nav>
       </header>

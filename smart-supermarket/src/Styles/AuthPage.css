@@ -1,25 +1,25 @@
-.RegisterPage {
+.AuthPage {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 2rem;
 }
 
-.register-form {
+.auth-form {
     display: flex;
     flex-direction: column;
     width: 300px;
     gap: 1rem;
 }
 
-.register-form input {
+.auth-form input {
     padding: 0.5rem;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
-.register-form button {
+.auth-form button {
     padding: 0.5rem;
     font-size: 1rem;
     background-color: #4CAF50;
@@ -29,6 +29,6 @@
     cursor: pointer;
 }
 
-.register-form button:hover {
+.auth-form button:hover {
     background-color: #45a049;
 }
