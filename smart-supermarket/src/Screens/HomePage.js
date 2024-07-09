@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import '../Styles/HomePage.css';
 
 function HomePage() {
@@ -16,7 +17,7 @@ function HomePage() {
         <div className="centered-container">
           <div className="top-content">
             <h1>Smart Supermarket Recommender System</h1>
-            <button className="register-btn">Register</button>
+            <Link to="/register" className="register-btn">Register</Link>
           </div>
         </div>
         <div className="bottom-content"> 
