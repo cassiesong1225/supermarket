@@ -9,7 +9,7 @@ function HomePage() {
         <nav>
           <div className="nav-links">
             <button className="nav-link">Home</button>
-            <Link to="/signin" className="nav-link">Signin</Link>
+            <Link to="/signin" className="nav-link signin-btn">Signin</Link>
           </div>
         </nav>
       </header>
@@ -23,7 +23,9 @@ function HomePage() {
         <div className="bottom-content"> 
           <div className="features">
             <div className="feature">
-              <h3>Face Recognition <br /> Emotion Detection</h3>
+               <Link to="/face-recognition" className="feature-link">
+                <h3>Face Recognition <br /> Emotion Detection</h3>
+               </Link>
             </div>
             <div className="feature">
               <h3>User Preference <br />Product Feature Analysis</h3>

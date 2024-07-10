@@ -49,9 +49,9 @@
 }
 
 .bottom-content {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    width: 100%;
+    max-width: 800px;
+    margin-top: 2rem;
 }
 
 h1 {
@@ -61,11 +61,19 @@ h1 {
 
 .register-btn {
     background-color: #4CAF50;
+    color: white;
     border: none;
     padding: 0.5rem 1rem;
     font-size: 1rem;
     cursor: pointer;
     margin-bottom: 1rem;
+    text-decoration: none;
+    border-radius: 5px;
+    display: inline-block;
+}
+
+.register-btn:hover {
+    background-color: #45a049;
 }
 
 .features {
@@ -85,4 +93,30 @@ h1 {
 
 .feature h3 {
     margin-bottom: 15px;
+}
+
+.feature-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.feature:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+.nav-link.signin-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.nav-link.signin-btn:hover {
+    background-color: #45a049;
+}
+
+.feature:focus-within {
+    outline: 2px solid #4CAF50;
 }
