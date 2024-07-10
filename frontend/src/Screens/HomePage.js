@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "../Styles/HomePage.css";
-import PreferenceSurvey from "./PreferenceSurvey";
+import { Link } from 'react-router-dom';
 
 function HomePage() {
   const [userType, setUserType] = useState("");
   const [userName, setUserName] = useState("");
+  const [password, setPassword] = useState("");
   const [photo, setPhoto] = useState(null);
   const [message, setMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showSurvey, setShowSurvey] = useState(false);
 
   const handlePhotoChange = (e) => {
     setPhoto(e.target.files[0]);
@@ -19,7 +19,7 @@ function HomePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!userType || !userName || !photo) {
+    if (!userType || !userName || !password || !photo) {
       setMessage("Please fill all fields and select a photo.");
       return;
     }
@@ -28,6 +28,7 @@ function HomePage() {
     const formData = new FormData();
     formData.append("user_type", userType);
     formData.append("user_name", userName);
+    formData.append("password", password);
     formData.append("photo", photo);
 
     try {
@@ -43,25 +44,10 @@ function HomePage() {
 
       setMessage(response.data.message);
       setShowModal(false);
-
-      if (userType === "login") {
-        setIsLoggedIn(true); // Hide login and signup buttons
-      } else if (userType === "signup") {
-        setIsLoggedIn(true); // Hide login and signup buttons
-        setShowSurvey(true); // Show preference survey
-      }
+      setIsLoggedIn(true);
     } catch (error) {
       console.error("Error details:", error);
-
-      if (error.response) {
-        setMessage(
-          `An error occurred: ${
-            error.response.data.error || error.response.statusText
-          }`
-        );
-      } else {
-        setMessage(`An error occurred: ${error.message}`);
-      }
+      setMessage(`An error occurred: ${error.response?.data?.error || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -70,6 +56,7 @@ function HomePage() {
   const handleUserTypeChange = (type) => {
     setUserType(type);
     setUserName("");
+    setPassword("");
     setPhoto(null);
     setMessage("");
     setShowModal(true);
@@ -79,10 +66,6 @@ function HomePage() {
     setShowModal(false);
   };
 
-  const closeSurvey = () => {
-    setShowSurvey(false);
-  };
-
   return (
     <div className="HomePage">
       <header className="HomePage-header">
@@ -90,16 +73,10 @@ function HomePage() {
           <div className="nav-links">
             {!isLoggedIn && (
               <>
-                <button
-                  onClick={() => handleUserTypeChange("login")}
-                  className="login-btn"
-                >
+                <button onClick={() => handleUserTypeChange("login")} className="login-btn">
                   Log in
                 </button>
-                <button
-                  onClick={() => handleUserTypeChange("signup")}
-                  className="signup-btn"
-                >
+                <button onClick={() => handleUserTypeChange("signup")} className="signup-btn">
                   Sign up
                 </button>
               </>
@@ -117,21 +94,15 @@ function HomePage() {
         <div className="bottom-content">
           <div className="features">
             <div className="feature">
-              <h3>
-                Face Recognition <br /> Emotion Detection
-              </h3>
+              <Link to="/face-recognition" className="feature-link">
+                <h3>Face Recognition <br /> Emotion Detection</h3>
+              </Link>
             </div>
             <div className="feature">
-              <h3>
-                User Preference <br />
-                Product Feature Analysis
-              </h3>
+              <h3>User Preference <br />Product Feature Analysis</h3>
             </div>
             <div className="feature">
-              <h3>
-                Give <br />
-                Recommendations
-              </h3>
+              <h3>Give <br />Recommendations</h3>
             </div>
           </div>
         </div>
@@ -139,34 +110,37 @@ function HomePage() {
         {showModal && (
           <div className="modal">
             <div className="modal-content">
-              <span className="close" onClick={closeModal}>
-                &times;
-              </span>
+              <span className="close" onClick={closeModal}>&times;</span>
               <h2>{userType === "login" ? "Log in" : "Sign up"}</h2>
-              <p>
-                {userType === "login"
-                  ? "Please log in by providing your name and a photo."
-                  : "Please sign up by providing your name and a photo."}
-              </p>
               {loading ? (
                 <div className="loader"></div>
               ) : (
                 <form onSubmit={handleSubmit}>
                   <input
                     type="text"
-                    placeholder="Enter your name"
+                    placeholder="Enter your username"
                     value={userName}
                     onChange={(e) => setUserName(e.target.value)}
+                    required
                   />
-                  <input type="file" onChange={handlePhotoChange} />
-                  <button type="submit">Submit</button>
+                  <input
+                    type="password"
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <input 
+                    type="file" 
+                    onChange={handlePhotoChange} 
+                    required
+                  />
+                  <button type="submit">{userType === "login" ? "Log in" : "Sign up"}</button>
                 </form>
               )}
             </div>
           </div>
         )}
-
-        {showSurvey && <PreferenceSurvey closeSurvey={closeSurvey} />}
       </main>
     </div>
   );
