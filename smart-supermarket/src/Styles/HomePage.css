@@ -106,15 +106,13 @@ h1 {
 }
 
 .nav-link.signin-btn {
-    background-color: #4CAF50;
-    color: white;
     padding: 0.5rem 1rem;
     border-radius: 5px;
     text-decoration: none;
 }
 
 .nav-link.signin-btn:hover {
-    background-color: #45a049;
+    background-color: #f6fcf6;
 }
 
 .feature:focus-within {
