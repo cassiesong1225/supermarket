@@ -102,7 +102,9 @@ function HomePage() {
               <h3>User Preference <br />Product Feature Analysis</h3>
             </div>
             <div className="feature">
-              <h3>Give <br />Recommendations</h3>
+              <Link to="/recommendations" className="feature-link">
+                <h3>Give <br />Recommendations</h3>
+              </Link>
             </div>
           </div>
         </div>
