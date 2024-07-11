@@ -1,0 +1,47 @@
+.FaceRecognitionPage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.FaceRecognitionPage h1 {
+    margin-bottom: 20px;
+}
+
+.FaceRecognitionPage video {
+    max-width: 100%;
+    margin-bottom: 20px;
+}
+
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.button-group button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+}
+
+.button-group button:hover {
+    background-color: #45a049;
+}
+
+.result {
+    text-align: center;
+    font-size: 18px;
+    margin-top: 20px;
+}
+
+.error-message {
+    color: red;
+    margin-bottom: 10px;
+}
