@@ -164,11 +164,14 @@ h1 {
 }
 
 .modal input[type="text"],
+.modal input[type="password"],
 .modal input[type="file"] {
     padding: 0.5rem;
     font-size: 1rem;
     border: 1px solid #ccc;
     border-radius: 5px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .modal button[type="submit"] {
