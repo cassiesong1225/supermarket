@@ -102,6 +102,7 @@ def get_products_df(product_ids):
     return products_df[products_df["product_id"].isin(product_ids)]
 
 
+
 def get_initial_recommendations_for_new_users(aisle_ids, N):
     aisles = list(map(int, aisle_ids.split(",")))
     purchase_count_df_with_aisles = pd.merge(purchase_count_train_df, products_df[['product_id', 'aisle_id']], on='product_id', how='left')
