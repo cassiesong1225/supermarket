@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import "../Styles/HomePage.css";
 import { Link } from 'react-router-dom';
+import { database } from '../Firebase-files/Firebasesetup';
 
 function HomePage() {
   const [userType, setUserType] = useState("");
@@ -65,6 +66,7 @@ function HomePage() {
   const closeModal = () => {
     setShowModal(false);
   };
+  console.log("database", database);
 
   return (
     <div className="HomePage">
@@ -143,6 +145,7 @@ function HomePage() {
             </div>
           </div>
         )}
+       
       </main>
     </div>
   );
