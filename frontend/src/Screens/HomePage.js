@@ -14,10 +14,18 @@ function HomePage() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showSurvey, setShowSurvey] = useState(false); // State to control the display of PreferenceSurvey
+  const [showSurvey, setShowSurvey] = useState(false);
+  const [recognitionPhoto, setRecognitionPhoto] = useState(null);
+  const [recognitionMessage, setRecognitionMessage] = useState("");
+  const [recognizedUserId, setRecognizedUserId] = useState(null);
+  const [recognizedMood, setRecognizedMood] = useState(null);
 
   const handlePhotoChange = (e) => {
     setPhoto(e.target.files[0]);
+  };
+
+  const handleRecognitionPhotoChange = (e) => {
+    setRecognitionPhoto(e.target.files[0]);
   };
 
   const handleSubmit = async (e) => {
@@ -70,6 +78,49 @@ function HomePage() {
   const closeModal = () => {
     setShowModal(false);
   };
+
+  const recognizeFace = async () => {
+    if (!recognitionPhoto) {
+      setRecognitionMessage("Please select a photo for recognition.");
+      return;
+    }
+
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("user_type", "login");
+    formData.append("photo", recognitionPhoto);
+
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5001/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setRecognitionMessage(response.data.message);
+      // 解析返回的消息,提取用户名和情绪
+      const match = response.data.message.match(/welcome back (.*?)! You seem to be feeling (.*?)\./);
+      if (match) {
+        const [, username, mood] = match;
+        // 假设用户名为jt对应userId为1
+        const userId = username === 'jt' ? 1 : null; 
+        setRecognizedUserId(userId);
+        setRecognizedMood(mood);
+      }
+    } catch (error) {
+      console.error("Error details:", error);
+      setRecognitionMessage(
+        `An error occurred: ${error.response?.data?.error || error.message}`
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
   console.log("database", database);
 
   return (
@@ -102,6 +153,20 @@ function HomePage() {
             <h1>Smart Supermarket Recommender System</h1>
           </div>
           {message && <p>{message}</p>}
+          
+          {/* 新增人脸识别部分 */}
+          <div className="face-recognition-section">
+            <h2>Face Recognition</h2>
+            <input 
+              type="file" 
+              onChange={handleRecognitionPhotoChange} 
+              accept="image/*" 
+            />
+            <button onClick={recognizeFace} disabled={loading}>
+              {loading ? "Processing..." : "Recognize Face"}
+            </button>
+            {recognitionMessage && <p>{recognitionMessage}</p>}
+          </div>
         </div>
         <div className="bottom-content">
           <div className="features">
@@ -119,13 +184,17 @@ function HomePage() {
               </h3>
             </div>
             <div className="feature">
-              <Link to="/recommendations" className="feature-link">
-                <h3>
-                  Give <br />
-                  Recommendations
-                </h3>
-              </Link>
-            </div>
+              <Link 
+                to="/recommendations" 
+                state={{ userId: recognizedUserId, mood: recognizedMood }}
+                className="feature-link"
+                >
+              <h3>
+                Give <br />
+                Recommendations
+              </h3>
+            </Link>
+          </div>
           </div>
         </div>
 

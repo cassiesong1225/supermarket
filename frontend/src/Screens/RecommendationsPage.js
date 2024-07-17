@@ -1,17 +1,21 @@
-import React, { useState } from "react";
+import React, { useState,useCallback } from "react";
+import { useLocation } from 'react-router-dom';
 import axios from "axios";
 import "../Styles/RecommendationsPage.css";
 
 function RecommendationsPage() {
-  const [userId, setUserId] = useState("");
-  const [mood, setMood] = useState("");
-  const [n, setN] = useState("");
+  const location = useLocation();
+  const { userId: initialUserId, mood: initialMood } = location.state || {};
+
+  const [userId, setUserId] = useState(initialUserId || "");
+  const [mood, setMood] = useState(initialMood || "");
+  const [n, setN] = useState("10");
   const [recommendations, setRecommendations] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = useCallback(async (e) => {
+    if (e) e.preventDefault();
     setLoading(true);
     setError(null);
     try {
@@ -34,7 +38,7 @@ function RecommendationsPage() {
       console.error(err);
     }
     setLoading(false);
-  };
+  }, [userId, mood, n]);
 
   return (
     <div className="RecommendationsPage">
@@ -51,24 +55,6 @@ function RecommendationsPage() {
           />
         </div>
         <div>
-          <label htmlFor="mood">Mood:</label>
-          <select
-            id="mood"
-            value={mood}
-            onChange={(e) => setMood(e.target.value)}
-            required
-          >
-            <option value="">Select mood</option>
-            <option value="happy">Happy</option>
-            <option value="angry">Angry</option>
-            <option value="fear">Fear</option>
-            <option value="sad">Sad</option>
-            <option value="disgust">Disgust</option>
-            <option value="suprise">Surprise</option>
-            <option value="neutral">Neutral</option>
-          </select>
-        </div>
-        <div>
           <label htmlFor="n">Number of Recommendations:</label>
           <input
             type="number"
@@ -78,10 +64,22 @@ function RecommendationsPage() {
             required
           />
         </div>
+         <div className="info-display">
+        <div>
+          <label htmlFor="detectedMood">Detected Mood:</label>
+          <input
+            type="text"
+            id="detectedMood"
+            value={mood}
+            readOnly
+          />
+        </div>
+      </div>
         <button type="submit" disabled={loading}>
           {loading ? "Loading..." : "Get Recommendations"}
         </button>
       </form>
+
 
       {error && <p className="error">{error}</p>}
 

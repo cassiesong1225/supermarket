@@ -52,3 +52,23 @@ button:disabled {
     padding: 10px;
     margin-bottom: 10px;
 }
+
+.info-display {
+    margin-bottom: 20px;
+}
+
+.info-display div {
+    display: flex;
+    flex-direction: column;
+}
+
+.info-display label {
+    margin-bottom: 5px;
+}
+
+.info-display input {
+    padding: 5px;
+    font-size: 16px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+}
