@@ -3,11 +3,6 @@ import joblib
 import numpy as np
 import pandas as pd
 from datetime import datetime
-from sklearn.metrics.pairwise import cosine_similarity
-import tensorflow as tf
-
-
-
 
 
 app = Flask(__name__)
@@ -81,6 +76,9 @@ def recommended_current_emotion_related_items(recommended_items, current_emotion
     return final_union_df.head(N)
 
 def get_close_to_expiration_pros(days=15):
+    """
+    Returns all items that are close to expiration within N days.
+    """
     current_date = pd.to_datetime(datetime.now())
     products_expiration_df['expiration_date'] = pd.to_datetime(products_expiration_df['expiration_date'])
     products_expiration_df['days_until_expiration'] = (products_expiration_df['expiration_date'] - current_date).dt.days
@@ -88,6 +86,9 @@ def get_close_to_expiration_pros(days=15):
     return result_df
 
 def recommended_close_to_expiration_items(recommended_items, N=3):
+    """
+    Return recommend close-to-expiration items
+    """
     close_to_expiration_products_df = get_close_to_expiration_pros()
     dataframes_list = []
     for item in recommended_items:
@@ -102,8 +103,10 @@ def get_products_df(product_ids):
     return products_df[products_df["product_id"].isin(product_ids)]
 
 
-
 def get_initial_recommendations_for_new_users(aisle_ids, N):
+    """
+    Return initial recommendations for new users.
+    """
     aisles = list(map(int, aisle_ids.split(",")))
     purchase_count_df_with_aisles = pd.merge(purchase_count_train_df, products_df[['product_id', 'aisle_id']], on='product_id', how='left')
     filted_df = purchase_count_df_with_aisles[purchase_count_df_with_aisles["aisle_id"].isin(aisles)]
@@ -134,6 +137,7 @@ def predict():
     if user_id is None:
         initial_recommendations = get_initial_recommendations_for_new_users(aisle_ids, N)
     else:
+        user_id = int(user_id)
         #generate initial recommendations
         initial_recommendations, scores = CF_model.recommend(user_id, user_product_matrix[user_id], N=N)
     #get current emotion related product list
@@ -154,9 +158,18 @@ def predict():
     close_to_exp_result = close_to_exp_recommendations_df[['product_id', 'product_name', 'aisle', 'department', 'days_until_expiration']]
     close_to_exp_result_json = close_to_exp_result.to_dict(orient='records')
 
+    actual_result_json = None
+    #actual purchased products
+    if user_id is not None:
+        pids = purchase_count_train_df[purchase_count_train_df["user_id"] == user_id]["product_id"].values
+        actual_purchased_products = get_products_df(pids)
+        actual_result = actual_purchased_products[['product_id', 'product_name', 'aisle', 'department']]
+        actual_result_json = actual_result.to_dict(orient='records')
+
     return jsonify({'initial_recommendations': initial_result_json, 
                     "mood_related_recommendations": mood_result_json,
-                    "close_to_exp_recommendations": close_to_exp_result_json})
+                    "close_to_exp_recommendations": close_to_exp_result_json,
+                    "actual_purchased_products": actual_result_json})
 
 
 
