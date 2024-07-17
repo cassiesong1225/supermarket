@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import axios from "axios";
 import "../Styles/HomePage.css";
-import { Link } from 'react-router-dom';
-import { database } from '../Firebase-files/Firebasesetup';
+import { Link } from "react-router-dom";
+import PreferenceSurvey from "./PreferenceSurvey";
+import { database } from "../Firebase-files/Firebasesetup";
 
 function HomePage() {
   const [userType, setUserType] = useState("");
@@ -13,6 +14,7 @@ function HomePage() {
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showSurvey, setShowSurvey] = useState(false); // State to control the display of PreferenceSurvey
 
   const handlePhotoChange = (e) => {
     setPhoto(e.target.files[0]);
@@ -34,7 +36,7 @@ function HomePage() {
 
     try {
       const response = await axios.post(
-        "https://3310-35-201-149-81.ngrok-free.app/upload",
+        "https://c698-34-23-46-179.ngrok-free.app/upload",
         formData,
         {
           headers: {
@@ -48,7 +50,9 @@ function HomePage() {
       setIsLoggedIn(true);
     } catch (error) {
       console.error("Error details:", error);
-      setMessage(`An error occurred: ${error.response?.data?.error || error.message}`);
+      setMessage(
+        `An error occurred: ${error.response?.data?.error || error.message}`
+      );
     } finally {
       setLoading(false);
     }
@@ -75,10 +79,16 @@ function HomePage() {
           <div className="nav-links">
             {!isLoggedIn && (
               <>
-                <button onClick={() => handleUserTypeChange("login")} className="login-btn">
+                <button
+                  onClick={() => handleUserTypeChange("login")}
+                  className="login-btn"
+                >
                   Log in
                 </button>
-                <button onClick={() => handleUserTypeChange("signup")} className="signup-btn">
+                <button
+                  onClick={() => handleUserTypeChange("signup")}
+                  className="signup-btn"
+                >
                   Sign up
                 </button>
               </>
@@ -97,15 +107,23 @@ function HomePage() {
           <div className="features">
             <div className="feature">
               <Link to="/face-recognition" className="feature-link">
-                <h3>Face Recognition <br /> Emotion Detection</h3>
+                <h3>
+                  Face Recognition <br /> Emotion Detection
+                </h3>
               </Link>
             </div>
             <div className="feature">
-              <h3>User Preference <br />Product Feature Analysis</h3>
+              <h3 onClick={() => setShowSurvey(true)}>
+                User Preference <br />
+                Product Feature Analysis
+              </h3>
             </div>
             <div className="feature">
               <Link to="/recommendations" className="feature-link">
-                <h3>Give <br />Recommendations</h3>
+                <h3>
+                  Give <br />
+                  Recommendations
+                </h3>
               </Link>
             </div>
           </div>
@@ -114,7 +132,9 @@ function HomePage() {
         {showModal && (
           <div className="modal">
             <div className="modal-content">
-              <span className="close" onClick={closeModal}>&times;</span>
+              <span className="close" onClick={closeModal}>
+                &times;
+              </span>
               <h2>{userType === "login" ? "Log in" : "Sign up"}</h2>
               {loading ? (
                 <div className="loader"></div>
@@ -134,18 +154,18 @@ function HomePage() {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                   />
-                  <input 
-                    type="file" 
-                    onChange={handlePhotoChange} 
-                    required
-                  />
-                  <button type="submit">{userType === "login" ? "Log in" : "Sign up"}</button>
+                  <input type="file" onChange={handlePhotoChange} required />
+                  <button type="submit">
+                    {userType === "login" ? "Log in" : "Sign up"}
+                  </button>
                 </form>
               )}
             </div>
           </div>
         )}
-       
+        {showSurvey && (
+          <PreferenceSurvey closeSurvey={() => setShowSurvey(false)} />
+        )}
       </main>
     </div>
   );

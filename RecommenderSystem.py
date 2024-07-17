@@ -1,11 +1,12 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import joblib
 import numpy as np
 import pandas as pd
 from datetime import datetime
 
-
 app = Flask(__name__)
+CORS(app)
 
 #load trained collaborative model
 CF_model = joblib.load('trained_model/cf_model.pkl')
