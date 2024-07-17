@@ -1,12 +1,18 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import joblib
 import numpy as np
 import pandas as pd
+from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 
+#load trained collaborative model
 CF_model = joblib.load('trained_model/cf_model.pkl')
+#matrix factorization from collaborative model
 user_product_matrix = joblib.load('trained_model/user_product_matrix.pkl')
+#product embeddings from content-based model
 product_embeddings = joblib.load('trained_model/product_embeddings.pkl')
 #user embeddings from content-based model
 user_embeddings = joblib.load('trained_model/user_embeddings.pkl')
@@ -33,19 +39,35 @@ products_df = pd.merge(products_df, departments_df, on="department_id")
 
 mood_food_df = pd.read_csv('capstone-dataset/mood_categorized_aisles.csv')
 mood_food_df = mood_food_df.drop(columns=['aisle'])
+#products with mood categories
 products_mood_df = pd.merge(products_df, mood_food_df, on="aisle_id")
 
-def product_neighbors(recommended_id, current_emotion_related_pros, threshold=0.0001):
+#products with expiration dates
+products_expiration_df = pd.merge(products_df, products_with_expiration_df, on="product_id")
+
+
+def product_neighbors(recommended_id, given_products_df, threshold=0.0001):
+    """
+    The rule is that calculate the similarity of recommendations and products in given products dataframe.
+    Get the most similar products with the similarities greater than the threshold.
+    Args:
+        recommended_id: the product id of a recommendation
+        current_emotion_related_pros: the dataframe of the current emotion-related products
+        threshold: the threshold of similarity; 0.0001 by default
+    """
     input_embedding = product_embeddings[recommended_id]
-    product_ids = current_emotion_related_pros["product_id"].values
+    product_ids = given_products_df["product_id"].values
     current_mood_related_product_embeddings = product_embeddings[product_ids]
     squared_distances = np.sum((current_mood_related_product_embeddings - input_embedding)**2, axis=1)
     
-    current_emotion_related_pros.loc[:, 'similarity'] = squared_distances
-    filtered_pros = current_emotion_related_pros[(current_emotion_related_pros['similarity'] > 0) & (current_emotion_related_pros['similarity'] <= threshold)]
+    given_products_df.loc[:, 'similarity'] = squared_distances
+    filtered_pros = given_products_df[(given_products_df['similarity'] > 0) & (given_products_df['similarity'] <= threshold)]
     return filtered_pros
 
-def recommended_current_emotion_related_intersection(recommended_items, current_emotion_related_pros, N=3):
+def recommended_current_emotion_related_items(recommended_items, current_emotion_related_pros, N=3):
+    """
+    Return the most similar items of the entire recommendation list and the entire current emotion-related product list.
+    """
     dataframes_list = []
     for item in recommended_items:
         union_df = product_neighbors(item, current_emotion_related_pros)
@@ -134,6 +156,8 @@ def predict():
     mood_result = cur_mood_relate_recommendations_df[['product_id', 'product_name', 'aisle', 'department']]
     mood_result_json = mood_result.to_dict(orient='records')
 
+    close_to_exp_result = close_to_exp_recommendations_df[['product_id', 'product_name', 'aisle', 'department', 'days_until_expiration']]
+    close_to_exp_result_json = close_to_exp_result.to_dict(orient='records')
 
     actual_result_json = None
     #actual purchased products

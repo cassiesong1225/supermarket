@@ -1,36 +1,40 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import '../Styles/RecommendationsPage.css';
+import React, { useState } from "react";
+import axios from "axios";
+import "../Styles/RecommendationsPage.css";
 
 function RecommendationsPage() {
-  const [userId, setUserId] = useState('');
-  const [mood, setMood] = useState('');
-  const [n, setN] = useState('');
+  const [userId, setUserId] = useState("");
+  const [mood, setMood] = useState("");
+  const [n, setN] = useState("");
   const [recommendations, setRecommendations] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError(null);
-  try {
-    const response = await axios.post('http://127.0.0.1:5525/predict', {
-      userId: parseInt(userId),
-      mood: mood,
-      N: parseInt(n)
-    }, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    setRecommendations(response.data);
-  } catch (err) {
-    setError('Failed to fetch recommendations. Please try again.');
-    console.error(err);
-  }
-  setLoading(false);
-};
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5525/predict",
+        {
+          userId: parseInt(userId),
+          mood: mood,
+          N: parseInt(n),
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      setRecommendations(response.data);
+    } catch (err) {
+      setError("Failed to fetch recommendations. Please try again.");
+      console.error(err);
+    }
+    setLoading(false);
+  };
 
   return (
     <div className="RecommendationsPage">
@@ -75,7 +79,7 @@ function RecommendationsPage() {
           />
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? 'Loading...' : 'Get Recommendations'}
+          {loading ? "Loading..." : "Get Recommendations"}
         </button>
       </form>
 
