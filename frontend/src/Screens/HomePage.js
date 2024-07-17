@@ -3,6 +3,7 @@ import axios from "axios";
 import "../Styles/HomePage.css";
 import { Link } from "react-router-dom";
 import PreferenceSurvey from "./PreferenceSurvey";
+import { database } from "../Firebase-files/Firebasesetup";
 
 function HomePage() {
   const [userType, setUserType] = useState("");
@@ -69,6 +70,7 @@ function HomePage() {
   const closeModal = () => {
     setShowModal(false);
   };
+  console.log("database", database);
 
   return (
     <div className="HomePage">
@@ -117,10 +119,12 @@ function HomePage() {
               </h3>
             </div>
             <div className="feature">
-              <h3>
-                Give <br />
-                Recommendations
-              </h3>
+              <Link to="/recommendations" className="feature-link">
+                <h3>
+                  Give <br />
+                  Recommendations
+                </h3>
+              </Link>
             </div>
           </div>
         </div>
@@ -159,7 +163,6 @@ function HomePage() {
             </div>
           </div>
         )}
-
         {showSurvey && (
           <PreferenceSurvey closeSurvey={() => setShowSurvey(false)} />
         )}
