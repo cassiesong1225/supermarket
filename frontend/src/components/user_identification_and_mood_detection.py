@@ -8,13 +8,29 @@ import cv2
 import requests
 import firebase_admin
 from firebase_admin import credentials, storage
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 # Firebase Admin SDK setup
-cred = credentials.Certificate('../Firebase-files/capstone-prototype-26547-firebase-adminsdk-y8lrm-54f34d4b94.json')
-firebase_admin.initialize_app(cred, {'storageBucket': 'capstone-prototype-26547.appspot.com'})
+cred = credentials.Certificate({
+  "type": os.getenv('FIREBASE_TYPE'),
+  "project_id": os.getenv('FIREBASE_PROJECT_ID'),
+  "private_key_id": os.getenv('FIREBASE_PRIVATE_KEY_ID'),
+  "private_key": os.getenv('FIREBASE_PRIVATE_KEY').replace('\\n', '\n'),
+  "client_email": os.getenv('FIREBASE_CLIENT_EMAIL'),
+  "client_id": os.getenv('FIREBASE_CLIENT_ID'),
+  "auth_uri": os.getenv('FIREBASE_AUTH_URI'),
+  "token_uri": os.getenv('FIREBASE_TOKEN_URI'),
+  "auth_provider_x509_cert_url": os.getenv('FIREBASE_AUTH_PROVIDER_X509_CERT_URL'),
+  "client_x509_cert_url": os.getenv('FIREBASE_CLIENT_X509_CERT_URL'),
+  "universe_domain": os.getenv('FIREBASE_UNIVERSE_DOMAIN')
+})
+firebase_admin.initialize_app(cred, {'storageBucket': os.getenv('FIREBASE_STORAGE_BUCKET')})
 
 # Temp directory for processing images
 temp_directory = "./temp"
