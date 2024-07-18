@@ -15,6 +15,42 @@
     margin-bottom: 20px;
 }
 
+.user-type-selection {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+.user-type-selection label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.user-type-selection input {
+    margin-right: 5px;
+}
+
+.signup-input {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+}
+
+.signup-input label {
+    display: flex;
+    align-items: center;
+}
+
+.signup-input input {
+    margin-left: 10px;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
 .button-group {
     display: flex;
     gap: 10px;
