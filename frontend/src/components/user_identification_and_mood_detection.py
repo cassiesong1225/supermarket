@@ -1,12 +1,13 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from deepface import DeepFace
+from werkzeug.utils import secure_filename
 import os
-import requests
+import shutil
 import cv2
+import requests
 import firebase_admin
 from firebase_admin import credentials, storage
-import urllib.parse
 
 app = Flask(__name__)
 CORS(app)
@@ -19,35 +20,40 @@ firebase_admin.initialize_app(cred, {'storageBucket': 'capstone-prototype-26547.
 temp_directory = "./temp"
 os.makedirs(temp_directory, exist_ok=True)
 
-# Endpoint to handle photo uploads
+def clear_temp_directory():
+    if os.path.exists(temp_directory):
+        shutil.rmtree(temp_directory)
+    os.makedirs(temp_directory, exist_ok=True)
+
 @app.route('/upload', methods=['POST'])
 def upload_photo():
+    clear_temp_directory()
     print("Received a request to /upload")
     print(f"Request form: {request.form}")
-    
+
     user_type = request.form.get('user_type')
     photo_url = request.form.get('photo')
     user_name = request.form.get('user_name') if user_type == 'signup' else None
-    
+
     print(f"user_type: {user_type}")
     print(f"photo_url: {photo_url}")
-    
+
     if not user_type or not photo_url or (user_type == 'signup' and not user_name):
         return jsonify({"error": "Missing required parameters"}), 400
 
     if user_type not in ['signup', 'login']:
         return jsonify({"error": "Invalid user type"}), 400
-    
+
     # Download the image from Firebase Storage
     response = requests.get(photo_url)
     if response.status_code != 200:
         return jsonify({"error": "Failed to download the photo"}), 500
     
-    safe_filename = os.path.basename(urllib.parse.urlparse(photo_url).path)
+    safe_filename = os.path.basename(photo_url.split('?')[0])
     photo_path = os.path.join(temp_directory, safe_filename)
     with open(photo_path, 'wb') as f:
         f.write(response.content)
-    
+
     if user_type == 'signup':
         # Save the photo to Firebase Storage
         bucket = storage.bucket()
@@ -90,21 +96,30 @@ def find_identity(photo_path, database_directory):
     try:
         faces = DeepFace.extract_faces(img_path=photo_path, detector_backend='opencv')
         if len(faces) == 0:
+            print("No face detected in the uploaded photo.")
             return None
 
         face = faces[0]['face']
         if face is None or face.size == 0:
+            print("Extracted face is empty or invalid.")
             return None
+    
+        # convert face to a format suitable for saving
+        if face.dtype != 'uint8':
+            face = (face * 255).astype('uint8')
 
+        # save the extracted face to a temporary file
         temp_face_path = os.path.join(temp_directory, 'temp_face.jpg')
         cv2.imwrite(temp_face_path, face)
 
         # Use DeepFace to compare with the downloaded database photos in the directory
         df = DeepFace.find(img_path=temp_face_path, db_path=database_directory, model_name='VGG-Face', enforce_detection=False)
+        
         if isinstance(df, list) and len(df) > 0 and not df[0].empty:
             return df[0]
         else:
             return None
+        
     except Exception as e:
         print(f"Error during facial recognition: {e}")
         return None
