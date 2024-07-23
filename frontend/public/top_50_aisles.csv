@@ -1,51 +1,51 @@
-aisle,total_purchases
-fresh fruits,3792661
-fresh vegetables,3568630
-packaged vegetables fruits,1843806
-yogurt,1507583
-packaged cheese,1021462
-milk,923659
-water seltzer sparkling water,878150
-chips pretzels,753739
-soy lactosefree,664493
-bread,608469
-refrigerated,599109
-frozen produce,545107
-ice cream ice,521101
-crackers,478430
-energy granola bars,473835
-eggs,472009
-lunch meat,412087
-frozen meals,408520
-baby food formula,395654
-fresh herbs,393793
-cereal,393787
-soft drinks,373816
-fresh dips tapenades,370827
-soup broth bouillon,361573
-juice nectars,348283
-baking ingredients,339780
-cream,330358
-other creams cheeses,320827
-nuts seeds dried fruit,319019
-hot dogs bacon sausage,318468
-candy chocolate,312020
-canned jarred vegetables,309716
-spreads,301502
-packaged produce,289488
-canned meals beans,282088
-dry pasta,277935
-butter,264892
-breakfast bakery,260621
-tea,258717
-oils vinegars,256086
-paper goods,255690
-cookies cakes,244045
-frozen breakfast,242492
-condiments,231792
-pasta sauce,228123
-spices seasonings,221371
-coffee,215467
-instant foods,210604
-frozen appetizers sides,203452
-tortillas flat bread,201650
+aisle_id,aisle,total_purchases
+24,fresh fruits,3792661
+83,fresh vegetables,3568630
+123,packaged vegetables fruits,1843806
+120,yogurt,1507583
+21,packaged cheese,1021462
+84,milk,923659
+115,water seltzer sparkling water,878150
+107,chips pretzels,753739
+91,soy lactosefree,664493
+112,bread,608469
+31,refrigerated,599109
+116,frozen produce,545107
+37,ice cream ice,521101
+78,crackers,478430
+3,energy granola bars,473835
+86,eggs,472009
+96,lunch meat,412087
+38,frozen meals,408520
+92,baby food formula,395654
+16,fresh herbs,393793
+121,cereal,393787
+77,soft drinks,373816
+67,fresh dips tapenades,370827
+69,soup broth bouillon,361573
+98,juice nectars,348283
+17,baking ingredients,339780
+53,cream,330358
+108,other creams cheeses,320827
+117,nuts seeds dried fruit,319019
+106,hot dogs bacon sausage,318468
+45,candy chocolate,312020
+81,canned jarred vegetables,309716
+88,spreads,301502
+32,packaged produce,289488
+59,canned meals beans,282088
+131,dry pasta,277935
+36,butter,264892
+93,breakfast bakery,260621
+94,tea,258717
+19,oils vinegars,256086
+54,paper goods,255690
+61,cookies cakes,244045
+52,frozen breakfast,242492
+72,condiments,231792
+9,pasta sauce,228123
+104,spices seasonings,221371
+26,coffee,215467
+4,instant foods,210604
+129,frozen appetizers sides,203452
+128,tortillas flat bread,201650

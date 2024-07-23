@@ -7,7 +7,7 @@ import shutil
 import cv2
 import requests
 import firebase_admin
-from firebase_admin import credentials, storage
+from firebase_admin import credentials, firestore, storage
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -31,6 +31,9 @@ cred = credentials.Certificate({
   "universe_domain": os.getenv('FIREBASE_UNIVERSE_DOMAIN')
 })
 firebase_admin.initialize_app(cred, {'storageBucket': os.getenv('FIREBASE_STORAGE_BUCKET')})
+
+# Initialize Firestore DB
+db = firestore.client()
 
 # Temp directory for processing images
 temp_directory = "./temp"
@@ -75,7 +78,15 @@ def upload_photo():
         bucket = storage.bucket()
         blob = bucket.blob(f'source_photos/{user_name.replace(" ", "_")}.jpg')
         blob.upload_from_filename(photo_path)
-        return jsonify({"message": f"Welcome {user_name}, your photo has been saved."})
+
+        # Create a new user in Firestore
+        user_ref = db.collection('users').add({
+            'userName': user_name,
+            'photoURL': blob.public_url
+        })
+        user_id = user_ref[1].id
+
+        return jsonify({"message": f"Welcome {user_name}, your photo has been saved. Please go to log in.", "userId": user_id})
 
     elif user_type == 'login':
         try:
@@ -99,7 +110,22 @@ def upload_photo():
                 matched_photo_path = matched_photo.iloc[0]['identity']
                 user_name = extract_username_from_path(matched_photo_path)
                 emotion = analyze_emotion(photo_path)
-                return jsonify({"message": f"Login Successful, welcome back {user_name}! You seem to be feeling {emotion}."})
+
+                # Retrieve the user ID from Firebase Firestore
+                users_collection = db.collection('users')
+                docs = users_collection.where('userName', '==', user_name).stream()
+                user_doc = next(docs, None)
+                if not user_doc:
+                    return jsonify({"message": "User not found."}), 404
+
+                user_id = user_doc.id
+
+                return jsonify({
+                    "message": f"Login Successful, welcome back {user_name}! You seem to be feeling {emotion}.",
+                    "userId": user_id,
+                    "userName": user_name,
+                    "mood": emotion
+                })
             else:
                 return jsonify({"message": "No matching user found. Please ensure your photo is clear or sign up if you haven't yet."})
         except Exception as e:

@@ -22,7 +22,7 @@ const auth = getAuth(app);
 // Sign in anonymously
 signInAnonymously(auth)
   .then(() => {
-    console.log("Signed in anonymously");
+    console.log("Firebase signed in anonymously");
   })
   .catch((error) => {
     console.error("Error signing in anonymously", error);

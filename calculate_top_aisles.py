@@ -26,8 +26,8 @@ order_user_product_train_df = pd.merge(order_user_train_df, order_products_train
 # Combine prior and train order dataframes
 all_orders_df = pd.concat([order_user_product_prior_df, order_user_product_train_df])
 
-# Calculate total purchases for each aisle
-aisle_purchase_counts = all_orders_df.groupby('aisle')['product_id'].count().reset_index(name='total_purchases')
+# Calculate total purchases for each aisle, retaining aisle_id
+aisle_purchase_counts = all_orders_df.groupby(['aisle_id', 'aisle'])['product_id'].count().reset_index(name='total_purchases')
 
 # Get the top 50 aisles by total purchases
 top_50_aisles = aisle_purchase_counts.nlargest(50, 'total_purchases')
