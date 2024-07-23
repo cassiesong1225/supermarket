@@ -1,20 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "../Styles/HomePage.css";
-import { Link } from "react-router-dom";
-import PreferenceSurvey from "./PreferenceSurvey";
-import { database } from "../Firebase-files/Firebasesetup";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useUser } from "../UserContext";
+import { storage } from "../Firebase-files/Firebasesetup";
+import { ref, uploadString, getDownloadURL } from "firebase/storage";
 
 function HomePage() {
+  const { user, login, logout } = useUser();
   const [userType, setUserType] = useState("");
   const [userName, setUserName] = useState("");
-  const [password, setPassword] = useState("");
   const [photo, setPhoto] = useState(null);
   const [message, setMessage] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showSurvey, setShowSurvey] = useState(false); // State to control the display of PreferenceSurvey
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state && location.state.userId) {
+      const { userId, userName, detectedMood } = location.state;
+      login(userId, userName, detectedMood);
+    }
+  }, [location.state, login]);
 
   const handlePhotoChange = (e) => {
     setPhoto(e.target.files[0]);
@@ -22,46 +30,60 @@ function HomePage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!userType || !userName || !password || !photo) {
+    if (!userType || !photo || (userType === "signup" && !userName)) {
       setMessage("Please fill all fields and select a photo.");
       return;
     }
 
     setLoading(true);
-    const formData = new FormData();
-    formData.append("user_type", userType);
-    formData.append("user_name", userName);
-    formData.append("password", password);
-    formData.append("photo", photo);
+    const reader = new FileReader();
+    reader.readAsDataURL(photo);
+    reader.onloadend = async () => {
+      try {
+        const photoDataUrl = reader.result;
+        const photoRef = ref(storage, `photos/${Date.now()}.jpg`);
+        await uploadString(photoRef, photoDataUrl, "data_url");
+        const photoURL = await getDownloadURL(photoRef);
 
-    try {
-      const response = await axios.post(
-        "https://c698-34-23-46-179.ngrok-free.app/upload",
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+        const formData = new FormData();
+        formData.append("user_type", userType);
+        formData.append("photo", photoURL);
+        if (userType === "signup") {
+          formData.append("user_name", userName);
         }
-      );
 
-      setMessage(response.data.message);
-      setShowModal(false);
-      setIsLoggedIn(true);
-    } catch (error) {
-      console.error("Error details:", error);
-      setMessage(
-        `An error occurred: ${error.response?.data?.error || error.message}`
-      );
-    } finally {
-      setLoading(false);
-    }
+        const response = await axios.post(
+          "http://127.0.0.1:5001/upload",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        console.log("Response data:", response.data); // Debugging line
+        setShowModal(false);
+        if (userType === "login") {
+          const { userId, userName, mood } = response.data;
+          login(userId, userName, mood);
+        } else {
+          setMessage(response.data.message);
+        }
+      } catch (error) {
+        console.error("Error details:", error);
+        setMessage(
+          `An error occurred: ${error.response?.data?.error || error.message}`
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
   };
 
   const handleUserTypeChange = (type) => {
     setUserType(type);
     setUserName("");
-    setPassword("");
     setPhoto(null);
     setMessage("");
     setShowModal(true);
@@ -70,14 +92,44 @@ function HomePage() {
   const closeModal = () => {
     setShowModal(false);
   };
-  console.log("database", database);
+
+  const handleSurveyClick = () => {
+    if (user.isLoggedIn) {
+      navigate("/preference-survey", {
+        state: {
+          userId: user.userId,
+          userName: user.userName,
+          detectedMood: user.detectedMood,
+        },
+      });
+    } else {
+      setMessage("Please log in to access the survey.");
+    }
+  };
+
+  const handleFaceRecognitionClick = (e) => {
+    if (user.isLoggedIn) {
+      e.preventDefault();
+      setMessage(
+        "You are already logged in. Please log out first to use Face Recognition."
+      );
+    } else {
+      navigate("/face-recognition");
+    }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setMessage(""); // Clear the message on logout
+    navigate("/");
+  };
 
   return (
     <div className="HomePage">
       <header className="HomePage-header">
         <nav>
           <div className="nav-links">
-            {!isLoggedIn && (
+            {!user.isLoggedIn ? (
               <>
                 <button
                   onClick={() => handleUserTypeChange("login")}
@@ -92,6 +144,10 @@ function HomePage() {
                   Sign up
                 </button>
               </>
+            ) : (
+              <button onClick={handleLogout} className="logout-btn">
+                Log out
+              </button>
             )}
           </div>
         </nav>
@@ -100,20 +156,30 @@ function HomePage() {
         <div className="centered-container">
           <div className="top-content">
             <h1>Smart Supermarket Recommender System</h1>
+            {user.isLoggedIn && (
+              <p>
+                Welcome {user.userName}! You seem to be feeling{" "}
+                {user.detectedMood}.
+              </p>
+            )}
           </div>
           {message && <p>{message}</p>}
         </div>
         <div className="bottom-content">
           <div className="features">
             <div className="feature">
-              <Link to="/face-recognition" className="feature-link">
+              <Link
+                to="/face-recognition"
+                className="feature-link"
+                onClick={handleFaceRecognitionClick}
+              >
                 <h3>
                   Face Recognition <br /> Emotion Detection
                 </h3>
               </Link>
             </div>
             <div className="feature">
-              <h3 onClick={() => setShowSurvey(true)}>
+              <h3 onClick={handleSurveyClick}>
                 User Preference <br />
                 Product Feature Analysis
               </h3>
@@ -140,20 +206,15 @@ function HomePage() {
                 <div className="loader"></div>
               ) : (
                 <form onSubmit={handleSubmit}>
-                  <input
-                    type="text"
-                    placeholder="Enter your username"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    required
-                  />
-                  <input
-                    type="password"
-                    placeholder="Enter your password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                  />
+                  {userType === "signup" && (
+                    <input
+                      type="text"
+                      placeholder="Enter your username"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      required
+                    />
+                  )}
                   <input type="file" onChange={handlePhotoChange} required />
                   <button type="submit">
                     {userType === "login" ? "Log in" : "Sign up"}
@@ -162,9 +223,6 @@ function HomePage() {
               )}
             </div>
           </div>
-        )}
-        {showSurvey && (
-          <PreferenceSurvey closeSurvey={() => setShowSurvey(false)} />
         )}
       </main>
     </div>

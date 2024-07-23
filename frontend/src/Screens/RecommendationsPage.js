@@ -14,20 +14,23 @@ function RecommendationsPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    const params = {
+      mood: mood,
+      N: parseInt(n),
+    };
+
+    if (userId) {
+      params.userId = parseInt(userId);
+    }
+
     try {
-      const response = await axios.post(
-        "http://127.0.0.1:5525/predict",
-        {
-          userId: parseInt(userId),
-          mood: mood,
-          N: parseInt(n),
+      const response = await axios.post("http://127.0.0.1:5525/predict", null, {
+        params: params,
+        headers: {
+          "Content-Type": "application/json",
         },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      });
       setRecommendations(response.data);
     } catch (err) {
       setError("Failed to fetch recommendations. Please try again.");
@@ -47,7 +50,6 @@ function RecommendationsPage() {
             id="userId"
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
-            required
           />
         </div>
         <div>
