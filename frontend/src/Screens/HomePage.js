@@ -64,9 +64,17 @@ function HomePage() {
 
         console.log("Response data:", response.data); // Debugging line
         setShowModal(false);
-        if (userType === "login") {
-          const { userId, userName, mood } = response.data;
-          login(userId, userName, mood);
+
+        if (
+          response.data.userId &&
+          response.data.userName &&
+          response.data.mood
+        ) {
+          login(
+            response.data.userId,
+            response.data.userName,
+            response.data.mood
+          );
         } else {
           setMessage(response.data.message);
         }
