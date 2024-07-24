@@ -6,12 +6,14 @@ import { doc, getDoc } from "firebase/firestore";
 import { database } from "../Firebase-files/Firebasesetup";
 import "../Styles/PreferenceSurvey.css";
 import { useUser } from "../UserContext";
+import Recommendations from "./ Recommendations";
 
 function PreferenceSurvey() {
   const { user } = useUser();
   const navigate = useNavigate();
   const [aisles, setAisles] = useState([]);
   const [selectedAisles, setSelectedAisles] = useState([]);
+  const [selectedAisleIds, setSelectedAislesIds] = useState("");
   const [detectedMood, setDetectedMood] = useState(user.detectedMood || "");
   const [n, setN] = useState(10); // Default to 10 recommendations
   const [recommendations, setRecommendations] = useState(null);
@@ -93,27 +95,13 @@ function PreferenceSurvey() {
       .filter((id) => id !== null && !isNaN(id));
 
     console.log("Selected Aisle IDs:", selectedAisleIds.join(",")); // Debugging line
-
+    
     if (selectedAisleIds.length === 0) {
       setError("Failed to match selected aisles with IDs.");
       setLoading(false);
       return;
     }
-
-    try {
-      const response = await axios.post("http://127.0.0.1:5525/predict", null, {
-        params: {
-          interested_aisles: selectedAisleIds.join(","),
-          mood: detectedMood,
-          N: parseInt(n),
-        },
-      });
-      setRecommendations(response.data);
-    } catch (err) {
-      setError("Failed to fetch recommendations. Please try again.");
-      console.error(err);
-    }
-    setLoading(false);
+    setSelectedAislesIds(selectedAisleIds)
   };
 
   return (
@@ -136,7 +124,7 @@ function PreferenceSurvey() {
         ))}
       </div>
       <form onSubmit={handleSubmit} className="form-container">
-        <div className="form-group">
+        {/* <div className="form-group">
           <label htmlFor="n">Number of Recommendations:</label>
           <input
             type="number"
@@ -145,48 +133,18 @@ function PreferenceSurvey() {
             onChange={(e) => setN(e.target.value)}
             required
           />
-        </div>
-        <button type="submit" disabled={loading} className="submit-button">
-          {loading ? "Loading..." : "Get Recommendations"}
+        </div> */}
+        <button type="submit"  className="submit-button">
+        Get Recommendations
         </button>
       </form>
       {error && <p className="error">{error}</p>}
-      {recommendations && (
-        <div className="recommendations">
-          <h2>Recommendations</h2>
-          <div className="recommendations-section">
-            <h3>Initial Recommendations</h3>
-            {recommendations.initial_recommendations.map((item, index) => (
-              <div key={index} className="recommendation-item">
-                <p>{item.product_name}</p>
-                <p>Aisle: {item.aisle}</p>
-                <p>Department: {item.department}</p>
-              </div>
-            ))}
-          </div>
-          <div className="recommendations-section">
-            <h3>Mood Related Recommendations</h3>
-            {recommendations.mood_related_recommendations.map((item, index) => (
-              <div key={index} className="recommendation-item">
-                <p>{item.product_name}</p>
-                <p>Aisle: {item.aisle}</p>
-                <p>Department: {item.department}</p>
-              </div>
-            ))}
-          </div>
-          <div className="recommendations-section">
-            <h3>Close to Expiration Recommendations</h3>
-            {recommendations.close_to_exp_recommendations.map((item, index) => (
-              <div key={index} className="recommendation-item">
-                <p>{item.product_name}</p>
-                <p>Aisle: {item.aisle}</p>
-                <p>Department: {item.department}</p>
-                <p>Days until expiration: {item.days_until_expiration}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
+      { loading && selectedAisleIds && detectedMood &&
+      (
+        <Recommendations selectedAisleIds={selectedAisleIds} mood={detectedMood}/>
+      )
+      }
     </div>
   );
 }

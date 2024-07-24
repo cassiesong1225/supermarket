@@ -123,19 +123,19 @@ def get_initial_recommendations_for_new_users(aisle_ids, N):
     return recommendations
 
 
-@app.route('/predict', methods=['POST'])
+@app.route('/predict', methods=['GET'])
 def predict():
     user_id = request.args.get('userId')
     current_mood = request.args.get('mood')
     N = request.args.get('N', 10, type=int)
     aisle_ids = request.args.get('interested_aisles')
-    if current_mood is None:
+    if not current_mood:
         return jsonify({"error": "Mood parameter is missing"}), 400
-    if user_id is None and aisle_ids is None:
+    if not user_id and not aisle_ids:
         return jsonify({"error": "user_id and interested_aisles parameters are missing"}), 400
     
     initial_recommendations = None
-    if user_id is None:
+    if not user_id:
         initial_recommendations = get_initial_recommendations_for_new_users(aisle_ids, N)
     else:
         user_id = int(user_id)
@@ -150,13 +150,13 @@ def predict():
 
     initial_recommendations_df = get_products_df(initial_recommendations)
     #format the recommendations
-    initial_result = initial_recommendations_df[['product_id', 'product_name', 'aisle', 'department']]
+    initial_result = initial_recommendations_df[['product_id', 'product_name', 'aisle', 'department']].head(5)
     initial_result_json = initial_result.to_dict(orient='records')
 
-    mood_result = cur_mood_relate_recommendations_df[['product_id', 'product_name', 'aisle', 'department']]
+    mood_result = cur_mood_relate_recommendations_df[['product_id', 'product_name', 'aisle', 'department']].head(3)
     mood_result_json = mood_result.to_dict(orient='records')
 
-    close_to_exp_result = close_to_exp_recommendations_df[['product_id', 'product_name', 'aisle', 'department', 'days_until_expiration']]
+    close_to_exp_result = close_to_exp_recommendations_df[['product_id', 'product_name', 'aisle', 'department', 'days_until_expiration']].head(3)
     close_to_exp_result_json = close_to_exp_result.to_dict(orient='records')
 
     actual_result_json = None

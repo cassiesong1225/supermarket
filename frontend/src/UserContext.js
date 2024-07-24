@@ -9,7 +9,7 @@ export const UserProvider = ({ children }) => {
     userId: null,
     userName: "",
     detectedMood: "",
-    isLoggedIn: false,
+    isLoggedIn: false
   });
 
   const login = (userId, userName, detectedMood) => {

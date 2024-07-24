@@ -85,8 +85,7 @@ def upload_photo():
             'photoURL': blob.public_url
         })
         user_id = user_ref[1].id
-
-        return jsonify({"message": f"Welcome {user_name}, your photo has been saved. Please go to log in.", "userId": user_id})
+        return jsonify({"message": f"Welcome {user_name.split(";")[0]}, your photo has been saved. Please go to log in.", "userId": user_id})
 
     elif user_type == 'login':
         try:
@@ -118,12 +117,12 @@ def upload_photo():
                 if not user_doc:
                     return jsonify({"message": "User not found."}), 404
 
-                user_id = user_doc.id
-
+                user_id = user_name.split(";")[1] if user_name.find(";") != -1 else -1
+                is_new = False if user_name.find(";") != -1 else True
                 return jsonify({
-                    "message": f"Login Successful, welcome back {user_name}! You seem to be feeling {emotion}.",
+                    "isNew": is_new,
                     "userId": user_id,
-                    "userName": user_name,
+                    "userName": user_name.split(";")[0],
                     "mood": emotion
                 })
             else:

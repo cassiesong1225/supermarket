@@ -5,6 +5,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../UserContext";
 import { storage } from "../Firebase-files/Firebasesetup";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
+import Recommendations from "./ Recommendations";
 
 function HomePage() {
   const { user, login, logout } = useUser();
@@ -65,8 +66,11 @@ function HomePage() {
         console.log("Response data:", response.data); // Debugging line
         setShowModal(false);
         if (userType === "login") {
-          const { userId, userName, mood } = response.data;
+          const { userId, userName, mood, isNew } = response.data;
           login(userId, userName, mood);
+          if (isNew == true) {
+            navigate("/preference-survey"); // Redirect after login
+          }
         } else {
           setMessage(response.data.message);
         }
@@ -165,7 +169,8 @@ function HomePage() {
           </div>
           {message && <p>{message}</p>}
         </div>
-        <div className="bottom-content">
+        {!user.isLoggedIn && (
+          <div className="bottom-content">
           <div className="features">
             <div className="feature">
               <Link
@@ -180,20 +185,27 @@ function HomePage() {
             </div>
             <div className="feature">
               <h3 onClick={handleSurveyClick}>
-                User Preference <br />
-                Product Feature Analysis
+                Shopping Preference <br/>
+                Survey
               </h3>
             </div>
             <div className="feature">
               <Link to="/recommendations" className="feature-link">
                 <h3>
-                  Give <br />
+                  Get <br />
                   Recommendations
                 </h3>
               </Link>
             </div>
           </div>
         </div>
+        )}
+        
+        {user.userId && user.userId !=-1 && (
+          <Recommendations userId={user.userId} mood={user.detectedMood} n={10}/>
+        )}
+
+       
 
         {showModal && (
           <div className="modal">
