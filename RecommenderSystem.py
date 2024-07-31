@@ -4,6 +4,9 @@ import joblib
 import numpy as np
 import pandas as pd
 from datetime import datetime
+import os
+import requests
+
 
 app = Flask(__name__)
 CORS(app)
@@ -122,6 +125,18 @@ def get_initial_recommendations_for_new_users(aisle_ids, N):
         recommendations.extend(top_items_in_aisle)
     return recommendations
 
+def get_product_image(product_names):
+    urls = []
+    api_key = os.getenv('SEARCH_API_KEY')
+    search_engine_id = os.getenv('SEARCH_ENGINE_ID')
+    for product_name in product_names:
+        # search_url = f"https://www.googleapis.com/customsearch/v1?q={product_name}&cx={search_engine_id}&key={api_key}&searchType=image"
+        # response = requests.get(search_url)
+        # data = response.json()
+        # if 'items' in data:
+            # urls.append(data['items'][0]['link'])
+        urls.append("https://josiesorganics.com/wp-content/uploads/2022/01/Josies-Organics-Baby-Spinach-16oz-Front.png")
+    return urls
 
 @app.route('/predict', methods=['GET'])
 def predict():
@@ -149,14 +164,20 @@ def predict():
     close_to_exp_recommendations_df = recommended_close_to_expiration_items(initial_recommendations)
 
     initial_recommendations_df = get_products_df(initial_recommendations)
-    #format the recommendations
-    initial_result = initial_recommendations_df[['product_id', 'product_name', 'aisle', 'department']].head(5)
+   #format the recommendations
+    initial_result = initial_recommendations_df[['product_id', 'product_name', 'aisle', 'department']].head(6)
+    image_urls = get_product_image(initial_result["product_name"].values)
+    initial_result["image_url"] = image_urls
     initial_result_json = initial_result.to_dict(orient='records')
-
+    
     mood_result = cur_mood_relate_recommendations_df[['product_id', 'product_name', 'aisle', 'department']].head(3)
+    image_urls = get_product_image(mood_result["product_name"].values)
+    mood_result["image_url"] = image_urls
     mood_result_json = mood_result.to_dict(orient='records')
 
     close_to_exp_result = close_to_exp_recommendations_df[['product_id', 'product_name', 'aisle', 'department', 'days_until_expiration']].head(3)
+    image_urls = get_product_image(close_to_exp_result["product_name"].values)
+    close_to_exp_result["image_url"] = image_urls
     close_to_exp_result_json = close_to_exp_result.to_dict(orient='records')
 
     actual_result_json = None
@@ -165,6 +186,8 @@ def predict():
         pids = purchase_count_train_df[purchase_count_train_df["user_id"] == user_id]["product_id"].values
         actual_purchased_products = get_products_df(pids)
         actual_result = actual_purchased_products[['product_id', 'product_name', 'aisle', 'department']]
+        image_urls = get_product_image(actual_result["product_name"].values)
+        actual_result["image_url"] = image_urls
         actual_result_json = actual_result.to_dict(orient='records')
 
     return jsonify({'initial_recommendations': initial_result_json, 
