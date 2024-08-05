@@ -1,51 +1,51 @@
-aisle_id,aisle,total_purchases
-24,fresh fruits,3792661
-83,fresh vegetables,3568630
-123,packaged vegetables fruits,1843806
-120,yogurt,1507583
-21,packaged cheese,1021462
-84,milk,923659
-115,water seltzer sparkling water,878150
-107,chips pretzels,753739
-91,soy lactosefree,664493
-112,bread,608469
-31,refrigerated,599109
-116,frozen produce,545107
-37,ice cream ice,521101
-78,crackers,478430
-3,energy granola bars,473835
-86,eggs,472009
-96,lunch meat,412087
-38,frozen meals,408520
-92,baby food formula,395654
-16,fresh herbs,393793
-121,cereal,393787
-77,soft drinks,373816
-67,fresh dips tapenades,370827
-69,soup broth bouillon,361573
-98,juice nectars,348283
-17,baking ingredients,339780
-53,cream,330358
-108,other creams cheeses,320827
-117,nuts seeds dried fruit,319019
-106,hot dogs bacon sausage,318468
-45,candy chocolate,312020
-81,canned jarred vegetables,309716
-88,spreads,301502
-32,packaged produce,289488
-59,canned meals beans,282088
-131,dry pasta,277935
-36,butter,264892
-93,breakfast bakery,260621
-94,tea,258717
-19,oils vinegars,256086
-54,paper goods,255690
-61,cookies cakes,244045
-52,frozen breakfast,242492
-72,condiments,231792
-9,pasta sauce,228123
-104,spices seasonings,221371
-26,coffee,215467
-4,instant foods,210604
-129,frozen appetizers sides,203452
-128,tortillas flat bread,201650
+aisle_id,aisle,department,total_purchases
+24,fresh fruits,produce,3792661
+83,fresh vegetables,produce,3568630
+123,packaged vegetables fruits,produce,1843806
+120,yogurt,dairy eggs,1507583
+21,packaged cheese,dairy eggs,1021462
+84,milk,dairy eggs,923659
+115,water seltzer sparkling water,beverages,878150
+107,chips pretzels,snacks,753739
+91,soy lactosefree,dairy eggs,664493
+112,bread,bakery,608469
+31,refrigerated,beverages,599109
+116,frozen produce,frozen,545107
+37,ice cream ice,frozen,521101
+78,crackers,snacks,478430
+3,energy granola bars,snacks,473835
+86,eggs,dairy eggs,472009
+96,lunch meat,deli,412087
+38,frozen meals,frozen,408520
+92,baby food formula,babies,395654
+16,fresh herbs,produce,393793
+121,cereal,breakfast,393787
+77,soft drinks,beverages,373816
+67,fresh dips tapenades,deli,370827
+69,soup broth bouillon,canned goods,361573
+98,juice nectars,beverages,348283
+17,baking ingredients,pantry,339780
+53,cream,dairy eggs,330358
+108,other creams cheeses,dairy eggs,320827
+117,nuts seeds dried fruit,snacks,319019
+106,hot dogs bacon sausage,meat seafood,318468
+45,candy chocolate,snacks,312020
+81,canned jarred vegetables,canned goods,309716
+88,spreads,pantry,301502
+32,packaged produce,produce,289488
+59,canned meals beans,canned goods,282088
+131,dry pasta,dry goods pasta,277935
+36,butter,dairy eggs,264892
+93,breakfast bakery,bakery,260621
+94,tea,beverages,258717
+19,oils vinegars,pantry,256086
+54,paper goods,household,255690
+61,cookies cakes,snacks,244045
+52,frozen breakfast,frozen,242492
+72,condiments,pantry,231792
+9,pasta sauce,dry goods pasta,228123
+104,spices seasonings,pantry,221371
+26,coffee,beverages,215467
+4,instant foods,dry goods pasta,210604
+129,frozen appetizers sides,frozen,203452
+128,tortillas flat bread,bakery,201650

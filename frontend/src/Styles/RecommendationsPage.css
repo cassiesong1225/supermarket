@@ -33,6 +33,11 @@ button {
     border: none;
     cursor: pointer;
     font-size: 16px;
+    border-radius: 5px;
+}
+
+button:hover {
+    background-color: #45a049;
 }
 
 button:disabled {

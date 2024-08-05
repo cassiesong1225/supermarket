@@ -1,4 +1,3 @@
-// FaceRecognitionPage.js
 import React, { useRef, useState, useEffect } from "react";
 import { storage, database } from "../Firebase-files/Firebasesetup";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
@@ -16,6 +15,7 @@ function FaceRecognitionPage() {
   const [error, setError] = useState(null);
   const [userType, setUserType] = useState("login"); // "login" or "signup"
   const [userName, setUserName] = useState(""); // only for signup
+  const [isLoading, setIsLoading] = useState(false); // loading state
   const { login } = useUser();
   const navigate = useNavigate();
 
@@ -62,6 +62,7 @@ function FaceRecognitionPage() {
     }
 
     try {
+      setIsLoading(true); // Set loading state to true
       const video = videoRef.current;
       const canvas = canvasRef.current;
       canvas.width = video.videoWidth;
@@ -71,6 +72,7 @@ function FaceRecognitionPage() {
       const photo = canvas.toDataURL("image/jpeg");
       sendPhotoToServer(photo);
     } catch (error) {
+      setIsLoading(false); // Set loading state to false in case of error
       setError("Failed to capture photo. Please try again.");
     }
   };
@@ -120,6 +122,11 @@ function FaceRecognitionPage() {
         } else if (userType === "login") {
           const { userId, userName, mood } = result;
           login(userId, userName, mood);
+          if (result.isNew) {
+            navigate("/preference-survey");
+          } else {
+            navigate("/recommendations");
+          }
         }
       } else {
         setError(
@@ -129,6 +136,8 @@ function FaceRecognitionPage() {
     } catch (err) {
       console.error("Error uploading photo:", err);
       setError("Failed to process the photo. Please try again.");
+    } finally {
+      setIsLoading(false); // Set loading state to false when the process is complete
     }
   };
 
@@ -145,90 +154,104 @@ function FaceRecognitionPage() {
 
   return (
     <div className="FaceRecognitionPage">
-      <h1>Face Recognition and Emotion Detection</h1>
-
-      {!result && (
-        <>
-          <div className="user-type-selection">
-            <label>
-              <input
-                type="radio"
-                value="login"
-                checked={userType === "login"}
-                onChange={() => setUserType("login")}
-              />
-              Login
-            </label>
-            <label>
-              <input
-                type="radio"
-                value="signup"
-                checked={userType === "signup"}
-                onChange={() => setUserType("signup")}
-              />
-              Signup
-            </label>
-          </div>
-
-          {userType === "signup" && (
-            <div className="signup-input">
-              <label>
-                Username:
-                <input
-                  type="text"
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                />
-              </label>
-            </div>
-          )}
-        </>
-      )}
-
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        style={{ display: isCameraOn ? "block" : "none" }}
-        onLoadedMetadata={() => setIsVideoLoaded(true)}
-      />
-      <canvas ref={canvasRef} style={{ display: "none" }} />
-
-      {error && <p className="error-message">{error}</p>}
-
-      {!result && (
-        <div className="button-group">
-          {!isCameraOn ? (
-            <button onClick={startCamera}>Start Camera</button>
-          ) : (
+      <div className="content-container">
+        <div className="left-container">
+          <h1>Face Recognition and Emotion Detection</h1>
+          {!result && (
             <>
-              <button onClick={capturePhoto}>Capture and Identify</button>
-              <button onClick={stopCamera}>Stop Camera</button>
+              <div className="user-type-selection">
+                <label>
+                  <input
+                    type="radio"
+                    value="login"
+                    checked={userType === "login"}
+                    onChange={() => setUserType("login")}
+                  />
+                  Login
+                </label>
+                <label>
+                  <input
+                    type="radio"
+                    value="signup"
+                    checked={userType === "signup"}
+                    onChange={() => setUserType("signup")}
+                  />
+                  Signup
+                </label>
+              </div>
+
+              {userType === "signup" && (
+                <div className="signup-input">
+                  <label>
+                    Username:
+                    <input
+                      type="text"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                    />
+                  </label>
+                </div>
+              )}
             </>
           )}
-        </div>
-      )}
 
-      {result && (
-        <div className="result">
-          {userType === "signup" ? (
-            <p>{result.message}</p>
-          ) : result.message ===
-            "No matching user found. Please ensure your photo is clear or sign up if you haven't yet." ? (
-            <p>{result.message}</p>
-          ) : (
-            <p>{result.message}</p>
+          {error && <p className="error-message">{error}</p>}
+
+          {!result && (
+            <div className="button-group">
+              {!isCameraOn ? (
+                <button onClick={startCamera}>Start Camera</button>
+              ) : (
+                <>
+                  <button onClick={capturePhoto} disabled={isLoading}>
+                    {isLoading ? (
+                      <div className="loading-spinner"></div>
+                    ) : (
+                      "Capture and Identify"
+                    )}
+                  </button>
+                  <button onClick={stopCamera} disabled={isLoading}>
+                    Stop Camera
+                  </button>
+                </>
+              )}
+            </div>
           )}
-          {userType === "signup" ? (
-            <button onClick={handleGoToLogin}>Go to Login</button>
-          ) : result.message ===
-            "No matching user found. Please ensure your photo is clear or sign up if you haven't yet." ? (
-            <button onClick={handleTryAgain}>Try Again</button>
-          ) : (
-            <button onClick={() => navigate("/")}>Go Back</button>
+
+          {result && (
+            <div className="result">
+              {userType === "signup" ? (
+                <p>{result.message}</p>
+              ) : result.message ===
+                "No matching user found. Please ensure your photo is clear or sign up if you haven't yet." ? (
+                <p>{result.message}</p>
+              ) : (
+                <p>{result.message}</p>
+              )}
+              <div className="button-group">
+                {userType === "signup" ? (
+                  <button onClick={handleGoToLogin}>Go to Login</button>
+                ) : result.message ===
+                  "No matching user found. Please ensure your photo is clear or sign up if you haven't yet." ? (
+                  <button onClick={handleTryAgain}>Try Again</button>
+                ) : (
+                  <button onClick={() => navigate("/")}>Go Back</button>
+                )}
+              </div>
+            </div>
           )}
         </div>
-      )}
+        <div className="right-container">
+          <video
+            ref={videoRef}
+            autoPlay
+            playsInline
+            style={{ display: isCameraOn ? "block" : "none" }}
+            onLoadedMetadata={() => setIsVideoLoaded(true)}
+          />
+          <canvas ref={canvasRef} style={{ display: "none" }} />
+        </div>
+      </div>
     </div>
   );
 }

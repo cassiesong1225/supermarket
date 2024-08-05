@@ -51,7 +51,12 @@ function PreferenceSurvey() {
             .map((row) => {
               const aisle_id = parseInt(row.aisle_id, 10);
               const total_purchases = parseInt(row.total_purchases, 10);
-              return { aisle_id, aisle: row.aisle, total_purchases };
+              return {
+                aisle_id,
+                aisle: row.aisle,
+                department: row.department,
+                total_purchases,
+              };
             });
           setAisles(aislesData);
         },
@@ -79,20 +84,12 @@ function PreferenceSurvey() {
       return;
     }
 
-    console.log("Selected Aisles:", selectedAisles); // Debugging line
-
     const selectedAisleIds = selectedAisles
       .map((aisle) => {
         const matchedAisle = aisles.find((a) => a.aisle === aisle);
-        console.log(
-          `Matching aisle: ${aisle}, Matched Aisle Data:`,
-          matchedAisle
-        ); // Debugging line
         return matchedAisle ? matchedAisle.aisle_id : null;
       })
       .filter((id) => id !== null && !isNaN(id));
-
-    console.log("Selected Aisle IDs:", selectedAisleIds.join(",")); // Debugging line
 
     if (selectedAisleIds.length === 0) {
       setError("Failed to match selected aisles with IDs.");
@@ -116,41 +113,84 @@ function PreferenceSurvey() {
     setLoading(false);
   };
 
+  // Helper function to capitalize the first letter of each word
+  const capitalizeFirstLetter = (string) => {
+    return string
+      .toLowerCase()
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
+  // Group aisles by department
+  const aislesByDepartment = aisles.reduce((acc, aisle) => {
+    if (!acc[aisle.department]) {
+      acc[aisle.department] = [];
+    }
+    acc[aisle.department].push(aisle);
+    return acc;
+  }, {});
+
+  // Sort departments by number of aisles in descending order
+  const sortedDepartments = Object.keys(aislesByDepartment).sort(
+    (a, b) => aislesByDepartment[b].length - aislesByDepartment[a].length
+  );
+
   return (
-    <div className="survey-container">
-      <h2>User Preference Survey</h2>
-      <p>Detected Mood: {detectedMood}</p>
-      <p>Please select your preferred product aisles:</p>
-      <div className="aisle-container">
-        {aisles.map((aisle, index) => (
-          <button
-            key={index}
-            type="button"
-            className={`aisle-button ${
-              selectedAisles.includes(aisle.aisle) ? "selected" : ""
-            }`}
-            onClick={() => handleAisleClick(aisle.aisle)}
-          >
-            {aisle.aisle}
-          </button>
-        ))}
-      </div>
-      <form onSubmit={handleSubmit} className="form-container">
-        <div className="form-group">
-          <label htmlFor="n">Number of Recommendations:</label>
-          <input
-            type="number"
-            id="n"
-            value={n}
-            onChange={(e) => setN(e.target.value)}
-            required
-          />
+    <div className="PreferenceSurvey">
+      <div className="survey-container">
+        <div className="survey-top">
+          <h1>User Preference Survey</h1>
+          <p>Detected Mood: {detectedMood}</p>
+          <p>
+            Welcome {user.userName}! Please select your preferred product
+            aisles:
+          </p>
+          <div className="aisle-container">
+            {sortedDepartments.map((department) => (
+              <div key={department} className="department-section">
+                <h3>{capitalizeFirstLetter(department)}</h3>
+                <div className="aisles-in-department">
+                  {aislesByDepartment[department].map((aisle, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      className={`aisle-button ${
+                        selectedAisles.includes(aisle.aisle) ? "selected" : ""
+                      }`}
+                      onClick={() => handleAisleClick(aisle.aisle)}
+                    >
+                      {capitalizeFirstLetter(aisle.aisle)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="survey-bottom">
+            <form onSubmit={handleSubmit} className="form-container">
+              <div className="form-group">
+                <label htmlFor="n">Number of Recommendations:</label>
+                <input
+                  type="number"
+                  id="n"
+                  value={n}
+                  onChange={(e) => setN(e.target.value)}
+                  required
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="submit-button"
+              >
+                {loading ? "Loading..." : "Get Recommendations"}
+              </button>
+            </form>
+            {error && <p className="error">{error}</p>}
+          </div>
         </div>
-        <button type="submit" disabled={loading} className="submit-button">
-          {loading ? "Loading..." : "Get Recommendations"}
-        </button>
-      </form>
-      {error && <p className="error">{error}</p>}
+      </div>
       {recommendations && (
         <div className="recommendations">
           <h2>Recommendations</h2>
