@@ -1,32 +1,34 @@
+/* Make the recommendations section span the full width */
 .RecommendationsPage {
-    max-width: 800px;
+    max-width: 1200px; /* Increase this value as needed to make it wider */
     margin: 0 auto;
     padding: 20px;
-}
-
-form {
+  }
+  
+  /* Adjust the form styling */
+  form {
     display: flex;
     flex-direction: column;
     gap: 15px;
     margin-bottom: 20px;
-}
-
-form div {
+  }
+  
+  form div {
     display: flex;
     flex-direction: column;
-}
-
-label {
+  }
+  
+  label {
     margin-bottom: 5px;
-}
-
-input,
-select {
+  }
+  
+  input,
+  select {
     padding: 5px;
     font-size: 16px;
-}
-
-button {
+  }
+  
+  button {
     padding: 10px;
     background-color: #4CAF50;
     color: white;
@@ -34,26 +36,35 @@ button {
     cursor: pointer;
     font-size: 16px;
     border-radius: 5px;
-}
-
-button:hover {
+  }
+  
+  button:hover {
     background-color: #45a049;
-}
-
-button:disabled {
+  }
+  
+  button:disabled {
     background-color: #cccccc;
-}
-
-.error {
+  }
+  
+  .error {
     color: red;
-}
-
-.recommendations-section {
+  }
+  
+  /* Adjust the width of the recommendations section */
+  .recommendations-section {
     margin-bottom: 20px;
-}
-
-.recommendation-item {
+    width: 100%; /* Make the section full width */
+  }
+  
+  /* Adjust the recommended products container styling */
+  .recommended-products-container {
+    padding: 0 16px;
+    width: 100%; /* Ensure the container takes the full width */
+  }
+  
+  .recommendation-item {
     border: 1px solid #ddd;
     padding: 10px;
     margin-bottom: 10px;
-}
+  }
+  

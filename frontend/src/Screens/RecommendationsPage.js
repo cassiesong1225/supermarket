@@ -1,28 +1,29 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import axios from "axios";
 import "../Styles/RecommendationsPage.css";
+import { useLocation } from "react-router-dom";
+import RecommendedProducts from "./RecommendedProducts";
+import PurchaseHistoryTable from "./PurchaseHistoryTable";
 
 function RecommendationsPage() {
-  const [userId, setUserId] = useState("");
-  const [mood, setMood] = useState("");
-  const [n, setN] = useState("");
+  const location = useLocation();
+  const userId = location.state?.userId || "";
+  const mood = location.state?.mood || "";
+  const userName = location.state?.userName || "";
+  const [n, setN] = useState(10); // Default value is 10
   const [recommendations, setRecommendations] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const fetchRecommendations = useCallback(async () => {
     setLoading(true);
     setError(null);
 
     const params = {
       mood: mood,
       N: parseInt(n),
+      userId: parseInt(userId),
     };
-
-    if (userId) {
-      params.userId = parseInt(userId);
-    }
 
     try {
       const response = await axios.post("http://127.0.0.1:5525/predict", null, {
@@ -37,39 +38,26 @@ function RecommendationsPage() {
       console.error(err);
     }
     setLoading(false);
+  }, [mood, n, userId]);
+
+  useEffect(() => {
+    if (userId) {
+      fetchRecommendations();
+    }
+  }, [userId, fetchRecommendations]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    fetchRecommendations();
   };
 
   return (
     <div className="RecommendationsPage">
       <h1>Get Recommendations</h1>
+      <p>
+        Welcome {userName}! You seem to be feeling {mood}.
+      </p>
       <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="userId">User ID:</label>
-          <input
-            type="number"
-            id="userId"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-          />
-        </div>
-        <div>
-          <label htmlFor="mood">Mood:</label>
-          <select
-            id="mood"
-            value={mood}
-            onChange={(e) => setMood(e.target.value)}
-            required
-          >
-            <option value="">Select mood</option>
-            <option value="happy">Happy</option>
-            <option value="angry">Angry</option>
-            <option value="fear">Fear</option>
-            <option value="sad">Sad</option>
-            <option value="disgust">Disgust</option>
-            <option value="suprise">Surprise</option>
-            <option value="neutral">Neutral</option>
-          </select>
-        </div>
         <div>
           <label htmlFor="n">Number of Recommendations:</label>
           <input
@@ -78,6 +66,7 @@ function RecommendationsPage() {
             value={n}
             onChange={(e) => setN(e.target.value)}
             required
+            min="1" // Ensure the number of recommendations is at least 1
           />
         </div>
         <button type="submit" disabled={loading}>
@@ -88,39 +77,40 @@ function RecommendationsPage() {
       {error && <p className="error">{error}</p>}
 
       {recommendations && (
-        <div className="recommendations">
+        <div className="recommendations-container">
           <h2>Recommendations</h2>
           <div className="recommendations-section">
             <h3>Initial Recommendations</h3>
-            {recommendations.initial_recommendations.map((item, index) => (
-              <div key={index} className="recommendation-item">
-                <p>{item.product_name}</p>
-                <p>Aisle: {item.aisle}</p>
-                <p>Department: {item.department}</p>
-              </div>
-            ))}
+            <RecommendedProducts
+              recommendations={recommendations.initial_recommendations}
+              type="initial"
+              showPurchased={true} // Show actual purchased products for this page
+            />
           </div>
           <div className="recommendations-section">
             <h3>Mood Related Recommendations</h3>
-            {recommendations.mood_related_recommendations.map((item, index) => (
-              <div key={index} className="recommendation-item">
-                <p>{item.product_name}</p>
-                <p>Aisle: {item.aisle}</p>
-                <p>Department: {item.department}</p>
-              </div>
-            ))}
+            <RecommendedProducts
+              recommendations={recommendations.mood_related_recommendations}
+              type="mood_related"
+              showPurchased={true} // Show actual purchased products for this page
+            />
           </div>
           <div className="recommendations-section">
             <h3>Close to Expiration Recommendations</h3>
-            {recommendations.close_to_exp_recommendations.map((item, index) => (
-              <div key={index} className="recommendation-item">
-                <p>{item.product_name}</p>
-                <p>Aisle: {item.aisle}</p>
-                <p>Department: {item.department}</p>
-                <p>Days until expiration: {item.days_until_expiration}</p>
-              </div>
-            ))}
+            <RecommendedProducts
+              recommendations={recommendations.close_to_exp_recommendations}
+              type="close_to_expiration"
+              showPurchased={true} // Show actual purchased products for this page
+            />
           </div>
+          {recommendations.actual_purchased_products && (
+            <div className="recommendations-section">
+              <h3>Purchase History</h3>
+              <PurchaseHistoryTable
+                products={recommendations.actual_purchased_products}
+              />
+            </div>
+          )}
         </div>
       )}
     </div>

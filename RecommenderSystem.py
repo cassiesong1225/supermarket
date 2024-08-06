@@ -4,57 +4,106 @@ import joblib
 import numpy as np
 import pandas as pd
 from datetime import datetime
+import requests
+from dotenv import load_dotenv
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-#load trained collaborative model
+# Load environment variables from .env file
+load_dotenv()
+
+# API keys from environment variables
+RAPIDAPI_KEY = os.getenv('RAPIDAPI_KEY')
+RAPIDAPI_HOST = os.getenv('RAPIDAPI_HOST')
+
+# Load trained collaborative model
 CF_model = joblib.load('trained_model/cf_model.pkl')
-#matrix factorization from collaborative model
+# Matrix factorization from collaborative model
 user_product_matrix = joblib.load('trained_model/user_product_matrix.pkl')
-#product embeddings from content-based model
+# Product embeddings from content-based model
 product_embeddings = joblib.load('trained_model/product_embeddings.pkl')
-#user embeddings from content-based model
+# User embeddings from content-based model
 user_embeddings = joblib.load('trained_model/user_embeddings.pkl')
 
 emotion_dict = {
-        "happy": "positive",
-        "angry": "negative",
-        "fear": "negative",
-        "sad": "negative",
-        "disgust": "negative",
-        "suprise": "unclassified",
-        "neutral": "unclassified"
-    }
+    "happy": "positive",
+    "angry": "negative",
+    "fear": "negative",
+    "sad": "negative",
+    "disgust": "negative",
+    "suprise": "unclassified",
+    "neutral": "unclassified"
+}
 
 products_df = pd.read_csv('capstone-dataset/products.csv')
 aisles_df = pd.read_csv('capstone-dataset/aisles.csv')
 departments_df = pd.read_csv('capstone-dataset/departments.csv')
 products_with_expiration_df = pd.read_csv('capstone-dataset/products_with_expiration.csv')
-user_features_df =  pd.read_csv('capstone-dataset/user_features_headers.csv')
-purchase_count_train_df =  pd.read_csv('capstone-dataset/purchase_count_train_df.csv')
+user_features_df = pd.read_csv('capstone-dataset/user_features_headers.csv')
+purchase_count_train_df = pd.read_csv('capstone-dataset/purchase_count_train_df.csv')
 
 products_df = pd.merge(products_df, aisles_df, on="aisle_id")
 products_df = pd.merge(products_df, departments_df, on="department_id")
 
 mood_food_df = pd.read_csv('capstone-dataset/mood_categorized_aisles.csv')
 mood_food_df = mood_food_df.drop(columns=['aisle'])
-#products with mood categories
+# Products with mood categories
 products_mood_df = pd.merge(products_df, mood_food_df, on="aisle_id")
 
-#products with expiration dates
+# Products with expiration dates
 products_expiration_df = pd.merge(products_df, products_with_expiration_df, on="product_id")
 
+def fetch_product_data(product_name):
+    url = "https://real-time-product-search.p.rapidapi.com/search"
+    headers = {
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': RAPIDAPI_HOST
+    }
+    params = {
+        'q': product_name,
+        'country': 'us',
+        'language': 'en',
+        'page': '1',
+        'limit': '10',  # Increase limit to fetch more results
+        'sort_by': 'BEST_MATCH',
+        'product_condition': 'ANY',
+        'min_rating': 'ANY'
+    }
+
+    try:
+        response = requests.get(url, headers=headers, params=params)
+        if response.status_code == 200:
+            data = response.json().get('data', [])
+            for product in data:
+                if product.get('product_photos') and product.get('typical_price_range'):
+                    return {
+                        'image_url': product['product_photos'][0],
+                        'price': product['typical_price_range'][1],
+                        'discount_price': product['typical_price_range'][0]
+                    }
+            # If no valid product found, return default values
+            return {
+                'image_url': 'default-image-url',
+                'price': 'Price not available',
+                'discount_price': None
+            }
+        else:
+            return {
+                'image_url': 'default-image-url',
+                'price': 'Price not available',
+                'discount_price': None
+            }
+    except Exception as e:
+        print(f"Error fetching product data: {e}")
+        return {
+            'image_url': 'default-image-url',
+            'price': 'Price not available',
+            'discount_price': None
+        }
 
 def product_neighbors(recommended_id, given_products_df, threshold=0.0001):
-    """
-    The rule is that calculate the similarity of recommendations and products in given products dataframe.
-    Get the most similar products with the similarities greater than the threshold.
-    Args:
-        recommended_id: the product id of a recommendation
-        current_emotion_related_pros: the dataframe of the current emotion-related products
-        threshold: the threshold of similarity; 0.0001 by default
-    """
     input_embedding = product_embeddings[recommended_id]
     product_ids = given_products_df["product_id"].values
     current_mood_related_product_embeddings = product_embeddings[product_ids]
@@ -65,9 +114,6 @@ def product_neighbors(recommended_id, given_products_df, threshold=0.0001):
     return filtered_pros
 
 def recommended_current_emotion_related_items(recommended_items, current_emotion_related_pros, N=3):
-    """
-    Return the most similar items of the entire recommendation list and the entire current emotion-related product list.
-    """
     dataframes_list = []
     for item in recommended_items:
         union_df = product_neighbors(item, current_emotion_related_pros)
@@ -77,9 +123,6 @@ def recommended_current_emotion_related_items(recommended_items, current_emotion
     return final_union_df.head(N)
 
 def get_close_to_expiration_pros(days=15):
-    """
-    Returns all items that are close to expiration within N days.
-    """
     current_date = pd.to_datetime(datetime.now())
     products_expiration_df['expiration_date'] = pd.to_datetime(products_expiration_df['expiration_date'])
     products_expiration_df['days_until_expiration'] = (products_expiration_df['expiration_date'] - current_date).dt.days
@@ -87,9 +130,6 @@ def get_close_to_expiration_pros(days=15):
     return result_df
 
 def recommended_close_to_expiration_items(recommended_items, N=3):
-    """
-    Return recommend close-to-expiration items
-    """
     close_to_expiration_products_df = get_close_to_expiration_pros()
     dataframes_list = []
     for item in recommended_items:
@@ -99,15 +139,10 @@ def recommended_close_to_expiration_items(recommended_items, N=3):
     final_union_df = final_union_df.sort_values(by="similarity")
     return final_union_df.head(N)
 
-
 def get_products_df(product_ids):
     return products_df[products_df["product_id"].isin(product_ids)]
 
-
 def get_initial_recommendations_for_new_users(aisle_ids, N):
-    """
-    Return initial recommendations for new users.
-    """
     aisles = list(map(int, aisle_ids.split(",")))
     purchase_count_df_with_aisles = pd.merge(purchase_count_train_df, products_df[['product_id', 'aisle_id']], on='product_id', how='left')
     filted_df = purchase_count_df_with_aisles[purchase_count_df_with_aisles["aisle_id"].isin(aisles)]
@@ -121,7 +156,6 @@ def get_initial_recommendations_for_new_users(aisle_ids, N):
         top_items_in_aisle = items_in_aisle.head(topN)["product_id"].values
         recommendations.extend(top_items_in_aisle)
     return recommendations
-
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -139,40 +173,43 @@ def predict():
         initial_recommendations = get_initial_recommendations_for_new_users(aisle_ids, N)
     else:
         user_id = int(user_id)
-        #generate initial recommendations
         initial_recommendations, scores = CF_model.recommend(user_id, user_product_matrix[user_id], N=N)
-    #get current emotion related product list
-    current_emotion_related_pros = products_mood_df[products_mood_df["mood"]==emotion_dict[current_mood]]
-    #get the intersection of initial recommendations and current emotion related products
+    
+    current_emotion_related_pros = products_mood_df[products_mood_df["mood"] == emotion_dict[current_mood]]
     cur_mood_relate_recommendations_df = recommended_current_emotion_related_items(initial_recommendations, current_emotion_related_pros)
-    #get the intersection of initial recommendations and close-to-expiration products
     close_to_exp_recommendations_df = recommended_close_to_expiration_items(initial_recommendations)
 
     initial_recommendations_df = get_products_df(initial_recommendations)
-    #format the recommendations
-    initial_result = initial_recommendations_df[['product_id', 'product_name', 'aisle', 'department']]
+
+    def fetch_product_details(row):
+        product_data = fetch_product_data(row['product_name'])
+        row['image_url'] = product_data['image_url']
+        row['price'] = product_data['price']
+        row['discount_price'] = product_data.get('discount_price', None)
+        return row
+
+    initial_result = initial_recommendations_df[['product_id', 'product_name', 'aisle', 'department']].apply(fetch_product_details, axis=1)
     initial_result_json = initial_result.to_dict(orient='records')
 
-    mood_result = cur_mood_relate_recommendations_df[['product_id', 'product_name', 'aisle', 'department']]
+    mood_result = cur_mood_relate_recommendations_df[['product_id', 'product_name', 'aisle', 'department']].apply(fetch_product_details, axis=1)
     mood_result_json = mood_result.to_dict(orient='records')
 
-    close_to_exp_result = close_to_exp_recommendations_df[['product_id', 'product_name', 'aisle', 'department', 'days_until_expiration']]
+    close_to_exp_result = close_to_exp_recommendations_df[['product_id', 'product_name', 'aisle', 'department', 'days_until_expiration']].apply(fetch_product_details, axis=1)
     close_to_exp_result_json = close_to_exp_result.to_dict(orient='records')
 
     actual_result_json = None
-    #actual purchased products
     if user_id is not None:
         pids = purchase_count_train_df[purchase_count_train_df["user_id"] == user_id]["product_id"].values
         actual_purchased_products = get_products_df(pids)
-        actual_result = actual_purchased_products[['product_id', 'product_name', 'aisle', 'department']]
-        actual_result_json = actual_result.to_dict(orient='records')
+        actual_result = actual_purchased_products[['product_id', 'product_name', 'aisle', 'department']].to_dict(orient='records')
+        actual_result_json = actual_result
 
-    return jsonify({'initial_recommendations': initial_result_json, 
-                    "mood_related_recommendations": mood_result_json,
-                    "close_to_exp_recommendations": close_to_exp_result_json,
-                    "actual_purchased_products": actual_result_json})
-
-
+    return jsonify({
+        'initial_recommendations': initial_result_json,
+        "mood_related_recommendations": mood_result_json,
+        "close_to_exp_recommendations": close_to_exp_result_json,
+        "actual_purchased_products": actual_result_json
+    })
 
 if __name__ == '__main__':
     app.run(port=5525, debug=True)

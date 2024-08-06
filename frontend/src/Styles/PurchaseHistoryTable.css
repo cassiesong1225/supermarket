@@ -1,0 +1,19 @@
+.table-container {
+    margin: 20px 0;
+  }
+  
+  .header-cell {
+    font-weight: bold;
+    background-color: #f0f0f0; /* Header background color */
+    border-right: 1px solid #ddd; /* Column divider */
+  }
+  
+  .body-cell {
+    background-color: #fff; /* Body background color */
+    border-right: 1px solid #ddd; /* Column divider */
+  }
+  
+  .MuiTableCell-root {
+    border-bottom: 1px solid #ddd; /* Row divider */
+  }
+  

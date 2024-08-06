@@ -8,7 +8,7 @@
   position: relative;
 }
 
-.survey-container::before{
+.survey-container::before {
   content: "";
   position: absolute;
   top: 0;
@@ -125,4 +125,14 @@ select {
   border: 1px solid #ddd;
   padding: 10px;
   margin-bottom: 10px;
+}
+
+.PreferenceSurvey .preference-survey-recommendations {
+  width: 70%;
+  margin: 0 auto;
+}
+
+.recommended-products-container {
+  padding: 0 16px;
+  width: 100%; /* Ensure the container takes the full width */
 }

@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import "../Styles/HomePage.css";
-import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useUser } from "../UserContext";
-import { storage, database } from "../Firebase-files/Firebasesetup";
+import { storage } from "../Firebase-files/Firebasesetup";
 import { ref, uploadString, getDownloadURL } from "firebase/storage";
-import { doc, setDoc, getDocs, collection } from "firebase/firestore";
 
 function HomePage() {
   const { user, login, logout } = useUser();
@@ -23,7 +22,6 @@ function HomePage() {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [result, setResult] = useState(null);
-  const [error, setError] = useState(null);
   const [showLoginButton, setShowLoginButton] = useState(false);
 
   useEffect(() => {
@@ -98,12 +96,6 @@ function HomePage() {
     }
   };
 
-  const generateUserId = async () => {
-    const usersCollection = collection(database, "users");
-    const usersSnapshot = await getDocs(usersCollection);
-    return usersSnapshot.size + 1;
-  };
-
   const sendPhotoToServer = async (photo) => {
     try {
       // Upload photo to Firebase
@@ -136,11 +128,6 @@ function HomePage() {
         if (userType === "signup") {
           setModalMessage(result.message);
           setShowLoginButton(true);
-          const newUserId = await generateUserId();
-          await setDoc(doc(database, "users", String(newUserId)), {
-            userId: newUserId,
-            userName: userName,
-          });
         } else if (userType === "login") {
           const { userId, userName, mood, isNew } = result;
           if (result.message) {
@@ -150,7 +137,9 @@ function HomePage() {
             if (isNew === true) {
               navigate("/preference-survey");
             } else {
-              navigate("/recommendations");
+              navigate("/recommendations", {
+                state: { userId: userId, mood: mood, userName: userName },
+              });
             }
           }
         }
@@ -202,7 +191,9 @@ function HomePage() {
           if (isNew === true) {
             navigate("/preference-survey");
           } else {
-            navigate("/recommendations");
+            navigate("/recommendations", {
+              state: { userId: userId, mood: mood, userName: userName },
+            });
           }
         }
       } else {
@@ -254,31 +245,6 @@ function HomePage() {
   const closeModal = () => {
     setShowModal(false);
     stopCamera();
-  };
-
-  const handleSurveyClick = () => {
-    if (user.isLoggedIn) {
-      navigate("/preference-survey", {
-        state: {
-          userId: user.userId,
-          userName: user.userName,
-          detectedMood: user.detectedMood,
-        },
-      });
-    } else {
-      setMessage("Please log in to access the survey.");
-    }
-  };
-
-  const handleFaceRecognitionClick = (e) => {
-    if (user.isLoggedIn) {
-      e.preventDefault();
-      setMessage(
-        "You are already logged in. Please log out first to use Face Recognition."
-      );
-    } else {
-      navigate("/face-recognition");
-    }
   };
 
   const handleLogout = () => {

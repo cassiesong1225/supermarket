@@ -1,3 +1,4 @@
+// src/Components/PreferenceSurvey.js
 import React, { useState, useEffect } from "react";
 import { readRemoteFile } from "react-papaparse";
 import axios from "axios";
@@ -6,6 +7,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { database } from "../Firebase-files/Firebasesetup";
 import "../Styles/PreferenceSurvey.css";
 import { useUser } from "../UserContext";
+import RecommendedProducts from "./RecommendedProducts";
 
 function PreferenceSurvey() {
   const { user } = useUser();
@@ -192,38 +194,28 @@ function PreferenceSurvey() {
         </div>
       </div>
       {recommendations && (
-        <div className="recommendations">
+        <div className="recommendations-container preference-survey-recommendations">
           <h2>Recommendations</h2>
           <div className="recommendations-section">
             <h3>Initial Recommendations</h3>
-            {recommendations.initial_recommendations.map((item, index) => (
-              <div key={index} className="recommendation-item">
-                <p>{item.product_name}</p>
-                <p>Aisle: {item.aisle}</p>
-                <p>Department: {item.department}</p>
-              </div>
-            ))}
+            <RecommendedProducts
+              recommendations={recommendations.initial_recommendations}
+              type="initial"
+            />
           </div>
           <div className="recommendations-section">
             <h3>Mood Related Recommendations</h3>
-            {recommendations.mood_related_recommendations.map((item, index) => (
-              <div key={index} className="recommendation-item">
-                <p>{item.product_name}</p>
-                <p>Aisle: {item.aisle}</p>
-                <p>Department: {item.department}</p>
-              </div>
-            ))}
+            <RecommendedProducts
+              recommendations={recommendations.mood_related_recommendations}
+              type="mood_related"
+            />
           </div>
           <div className="recommendations-section">
             <h3>Close to Expiration Recommendations</h3>
-            {recommendations.close_to_exp_recommendations.map((item, index) => (
-              <div key={index} className="recommendation-item">
-                <p>{item.product_name}</p>
-                <p>Aisle: {item.aisle}</p>
-                <p>Department: {item.department}</p>
-                <p>Days until expiration: {item.days_until_expiration}</p>
-              </div>
-            ))}
+            <RecommendedProducts
+              recommendations={recommendations.close_to_exp_recommendations}
+              type="close_to_expiration"
+            />
           </div>
         </div>
       )}
