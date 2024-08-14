@@ -143,10 +143,10 @@ function PreferenceSurvey() {
       <div className="survey-container">
         <div className="survey-top">
           <h1>User Preference Survey</h1>
-          <p>Detected Mood: {detectedMood}</p>
+          <p>Detected Mood: {capitalizeFirstLetter(detectedMood)}</p>
           <p>
-            Welcome {user.userName}! Please select your preferred product
-            aisles:
+            Welcome {capitalizeFirstLetter(user.userName)}! Please select your
+            preferred product aisles:
           </p>
           <div className="aisle-container">
             {sortedDepartments.map((department) => (

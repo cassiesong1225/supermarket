@@ -76,14 +76,21 @@ def fetch_product_data(product_name):
         response = requests.get(url, headers=headers, params=params)
         if response.status_code == 200:
             data = response.json().get('data', [])
-            for product in data:
-                if product.get('product_photos') and product.get('typical_price_range'):
+            for product in data:      
+                if product.get('product_photos') and product.get('offer') and 'price' in product['offer']:
+                    # Extract the numeric value from the price string
+                    price_str = product['offer']['price']
+                    price_value = float(price_str.replace('$', ''))
+
+                    # Calculate the discount price (20% off)
+                    discount_price_value = price_value * 0.8
+
                     return {
-                        'image_url': product['product_photos'][0],
-                        'price': product['typical_price_range'][1],
-                        'discount_price': product['typical_price_range'][0]
+                        'image_url': product['product_photos'][0],  # Use the first image
+                        'price': price_str,
+                        'discount_price': f"${discount_price_value:.2f}"  # Format back to a string with the dollar symbol
                     }
-            # If no valid product found, return default values
+            # If no suitable product found, return a default response
             return {
                 'image_url': 'default-image-url',
                 'price': 'Price not available',
